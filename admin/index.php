@@ -1,4 +1,4 @@
 <?php
 
-include_once("class/FL.php");
-include_once("class/VT.php");
+include_once("classes/FL.php");
+include_once("classes/VT.php");
