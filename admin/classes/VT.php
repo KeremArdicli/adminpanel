@@ -11,6 +11,11 @@ class VT extends Upload {
 
     public static $table;
     public static $select = "*";
+    public static $whereRawKey;
+    public static $whereRawVals;
+    public static $conditions;
+    public static $parameter;
+    public static $operator;
 
     function __construct()
     {
@@ -46,6 +51,12 @@ class VT extends Upload {
     {
         self::$table = $table;
         self::$select = "*";
+        self::$whereRawKey = null;
+        self::$whereRawVals = null;
+        self::$conditions = null;
+        self::$parameter = null;
+        self::$operator = null;
+
         return new self;
     }
 
@@ -59,6 +70,29 @@ class VT extends Upload {
     {
         self::$select = is_array($select) ? implode(",", $select) : $select ;
 
+        return new self;
+    }
+
+    /**
+     * elle yazılmış where sql koşullarını işler
+     *
+     * @param string $whereRawKeys
+     * @param array $whereRawVals
+     * @return void
+     */
+    public static function whereRaw (string $whereRawKey, array $whereRawVals)
+    {
+        self::$whereRawKey = "(" . $whereRawKey . ")";
+        self::$whereRawVals = $whereRawVals;
+        return new self;
+
+    }
+
+    public static function where (string|array $conditions, ?string $operator, ?string $parameter) 
+    {
+        self::$conditions = $conditions;
+        self::$parameter = $operator;
+        self::$parameter = $parameter;
         return new self;
     }
 
