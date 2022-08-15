@@ -1,6 +1,6 @@
 <?php
 
-class VT extends Upload
+class VT 
 {
 
     const HOST = "localhost";
@@ -18,7 +18,8 @@ class VT extends Upload
     public static $whereVals = [];
     public static $operator;
     public static $parameter;
-
+    public static $orderBy = null;
+    public static $limit = null;
 
 
     function __construct()
@@ -60,6 +61,8 @@ class VT extends Upload
         self::$whereVals = [];
         self::$operator = null;
         self::$parameter = null;
+        self::$orderBy = null;
+        self::$limit = null;
 
         return new self;
     }
@@ -121,6 +124,18 @@ class VT extends Upload
             self::$whereKey = $conditions . $operator . "? ";
         }
 
+        return new self;
+    }
+
+    public static function orderBy(array $orderParameters)
+    {
+        self::$orderBy = $orderParameters[0] . " " . (!empty($orderParameters[1]) ? $orderParameters[1] : "ASC");
+        return new self;
+    }
+
+    public static function limit(int $start, int $end = null)
+    {
+        self::$limit = $start .($end != null ? ",".$end : null);
         return new self;
     }
 }
