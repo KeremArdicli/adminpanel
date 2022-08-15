@@ -1,6 +1,6 @@
 <?php
 
-class VT 
+class VT extends Upload
 {
 
     const HOST = "localhost";
@@ -20,6 +20,9 @@ class VT
     public static $parameter;
     public static $orderBy = null;
     public static $limit = null;
+    public static $join = "";
+    public static $leftJoin = "";
+
 
 
     function __construct()
@@ -63,7 +66,9 @@ class VT
         self::$parameter = null;
         self::$orderBy = null;
         self::$limit = null;
-
+        self::$join = "";
+        self::$leftJoin = "";
+       
         return new self;
     }
 
@@ -73,7 +78,7 @@ class VT
      * @param string|array $select
      * @return void
      */
-    public static function select($select)
+    public static function select($select) :VT
     {
         self::$select = is_array($select) ? implode(",", $select) : $select;
 
@@ -87,7 +92,7 @@ class VT
      * @param array $whereRawVals
      * @return void
      */
-    public static function whereRaw(string $whereRawKey, array $whereRawVals)
+    public static function whereRaw(string $whereRawKey, array $whereRawVals)  :VT
     {
         self::$whereRawKey = "(" . $whereRawKey . ")";
         self::$whereRawVals = $whereRawVals;
@@ -102,7 +107,7 @@ class VT
      * @param string|null $parameter
      * @return void
      */
-    public static function where($conditions, $operator=null, $parameter=null)
+    public static function where($conditions, $operator=null, $parameter=null) :VT
     {
         if (is_array($conditions)) {
             $keyList = []; 
@@ -127,15 +132,40 @@ class VT
         return new self;
     }
 
-    public static function orderBy(array $orderParameters)
+    /**
+     * sql sorgusunda sıralama kriterini girmeye yarar
+     *
+     * @param array $orderParameters
+     * @return void
+     */
+    public static function orderBy(array $orderParameters) :VT
     {
         self::$orderBy = $orderParameters[0] . " " . (!empty($orderParameters[1]) ? $orderParameters[1] : "ASC");
         return new self;
     }
 
-    public static function limit(int $start, int $end = null)
+    /**
+     * sql sorgusunda limit girme işlemi yapar
+     *
+     * @param integer $start
+     * @param integer|null $end
+     * @return void
+     */
+    public static function limit(int $start, int $end = null) :VT
     {
         self::$limit = $start .($end != null ? ",".$end : null);
+        return new self;
+    }
+
+    public static function join($tableName, $thisColumn, $joinColumn) :VT
+    {
+        self::$join .= " INNER JOIN " . $tableName . " ON " . self::$table . "." . $thisColumn . " = " . $tableName . "." . $joinColumn . " ";
+        return new self;
+    }
+
+    public static function leftJoin($tableName, $thisColumn, $joinColumn) :VT
+    {
+        self::$leftJoin .= " LEFT JOIN " . $tableName . " ON " . self::$table . "." . $thisColumn . " = " . $tableName . "." . $joinColumn . " ";
         return new self;
     }
 }
