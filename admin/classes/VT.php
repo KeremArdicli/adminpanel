@@ -1,6 +1,7 @@
 <?php
 
-class VT extends Upload {
+class VT extends Upload
+{
 
     const HOST = "localhost";
     const USERNAME = "root";
@@ -13,9 +14,12 @@ class VT extends Upload {
     public static $select = "*";
     public static $whereRawKey;
     public static $whereRawVals;
-    public static $conditions;
-    public static $parameter;
+    public static $whereKey;
+    public static $whereVals = [];
     public static $operator;
+    public static $parameter;
+
+
 
     function __construct()
     {
@@ -25,18 +29,17 @@ class VT extends Upload {
     public static function __connect()
     {
         try {
-            
-            self::$connection = new PDO("mysql:host=".self::HOST.";dbname=".self::DATABASE.";charset=utf8",self::USERNAME,self::PASSWORD);
 
-        }catch (PDOException $error){
-            $data =(Object) [
+            self::$connection = new PDO("mysql:host=" . self::HOST . ";dbname=" . self::DATABASE . ";charset=utf8", self::USERNAME, self::PASSWORD);
+        } catch (PDOException $error) {
+            $data = (object) [
                 "type" => "501",
                 "title" => "Bağlantı hatası!",
                 "message" => "DB bağlantısı sağlanamadı",
                 "code" => $error->getMessage()
             ];
 
-            include_once __DIR__. "./../../errors/connection.php";
+            include_once __DIR__ . "./../../errors/connection.php";
             exit();
         }
     }
@@ -47,15 +50,16 @@ class VT extends Upload {
      * @param string $table
      * @return void
      */
-    public static function table ($table)
+    public static function table($table)
     {
         self::$table = $table;
         self::$select = "*";
         self::$whereRawKey = null;
         self::$whereRawVals = null;
-        self::$conditions = null;
-        self::$parameter = null;
+        self::$whereKey = null;
+        self::$whereVals = [];
         self::$operator = null;
+        self::$parameter = null;
 
         return new self;
     }
@@ -66,9 +70,9 @@ class VT extends Upload {
      * @param string|array $select
      * @return void
      */
-    public static function select (string|array $select)
+    public static function select($select)
     {
-        self::$select = is_array($select) ? implode(",", $select) : $select ;
+        self::$select = is_array($select) ? implode(",", $select) : $select;
 
         return new self;
     }
@@ -80,20 +84,43 @@ class VT extends Upload {
      * @param array $whereRawVals
      * @return void
      */
-    public static function whereRaw (string $whereRawKey, array $whereRawVals)
+    public static function whereRaw(string $whereRawKey, array $whereRawVals)
     {
         self::$whereRawKey = "(" . $whereRawKey . ")";
         self::$whereRawVals = $whereRawVals;
         return new self;
-
     }
 
-    public static function where (string|array $conditions, ?string $operator, ?string $parameter) 
+    /**
+     * Undocumented function
+     *
+     * @param string|array $conditions
+     * @param string|null $operator
+     * @param string|null $parameter
+     * @return void
+     */
+    public static function where($conditions, $operator=null, $parameter=null)
     {
-        self::$conditions = $conditions;
-        self::$parameter = $operator;
-        self::$parameter = $parameter;
+        if (is_array($conditions)) {
+            $keyList = []; 
+            foreach ($conditions as $key => $value) {
+                self::$whereVals[] = $value;
+                $keyList[] = $key;
+            }
+            self::$whereKey = implode("=? AND ", $keyList) . "=? ";
+        } 
+        else if ($operator != null && $parameter == null) 
+        {
+            self::$whereVals[]=$operator;
+            self::$whereKey = $conditions . "=? ";
+
+        }
+        else if($parameter != null)
+        {
+            self::$whereVals[] = $parameter;
+            self::$whereKey = $conditions . $operator . "? ";
+        }
+
         return new self;
     }
-
-} 
+}
